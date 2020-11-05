@@ -1,43 +1,33 @@
 """Assignment 1: Cryptography for CS41 Winter 2020.
 
-Name: <YOUR NAME>
-SUNet: <SUNet ID>
+Name: Fejer Kriszitna
+SUNet: fkim1812
 
 Replace this placeholder text with a description of this module.
 """
 import utils
-
+import math
+alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 
 #################
 # CAESAR CIPHER #
 #################
 
 def encrypt_caesar(plaintext):
-    """Encrypt a plaintext using a Caesar cipher.
-
-    Add more implementation details here.
-
-    :param plaintext: The message to encrypt.
-    :type plaintext: str
-
-    :returns: The encrypted ciphertext.
-    """
-    # Your implementation here.
-    raise NotImplementedError('encrypt_caesar is not yet implemented!')
-
+    new_text = ""
+    for i in range(len(plaintext)):
+        index = ( alphabet.find(plaintext[i]) + 3) % 26
+        new_text += alphabet[index]
+    
+    return new_text
 
 def decrypt_caesar(ciphertext):
-    """Decrypt a ciphertext using a Caesar cipher.
-
-    Add more implementation details here.
-
-    :param ciphertext: The message to decrypt.
-    :type ciphertext: str
-
-    :returns: The decrypted plaintext.
-    """
-    # Your implementation here.
-    raise NotImplementedError('decrypt_caesar is not yet implemented!')
+    new_text = ""
+    for i in range(len(ciphertext)):
+        index = ( alphabet.find(ciphertext[i]) - 3) % 26
+        new_text += alphabet[index]
+    
+    return new_text
 
 
 ###################
@@ -45,134 +35,169 @@ def decrypt_caesar(ciphertext):
 ###################
 
 def encrypt_vigenere(plaintext, keyword):
-    """Encrypt plaintext using a Vigenere cipher with a keyword.
+    new_text = ""
+    longer_keyword = ""
+    while (len(longer_keyword) < len(plaintext)):
+        longer_keyword += keyword
 
-    Add more implementation details here.
-
-    :param plaintext: The message to encrypt.
-    :type plaintext: str
-    :param keyword: The key of the Vigenere cipher.
-    :type keyword: str
-
-    :returns: The encrypted ciphertext.
-    """
-    # Your implementation here.
-    raise NotImplementedError('encrypt_vigenere is not yet implemented!')
-
+    for i in range(len(plaintext)):
+        index = ( alphabet.find(plaintext[i]) + alphabet.find(longer_keyword[i])) % 26
+        new_text += alphabet[index]
+    
+    return new_text
 
 def decrypt_vigenere(ciphertext, keyword):
-    """Decrypt ciphertext using a Vigenere cipher with a keyword.
+    new_text = ""
+    longer_keyword = ""
+    while (len(longer_keyword) < len(ciphertext)):
+        longer_keyword += keyword
 
-    Add more implementation details here.
-
-    :param ciphertext: The message to decrypt.
-    :type ciphertext: str
-    :param keyword: The key of the Vigenere cipher.
-    :type keyword: str
-
-    :returns: The decrypted plaintext.
-    """
-    # Your implementation here.
-    raise NotImplementedError('decrypt_vigenere is not yet implemented!')
+    for i in range(len(ciphertext)):
+        index = ( alphabet.find(ciphertext[i]) - alphabet.find(longer_keyword[i])) % 26
+        new_text += alphabet[index]
+    
+    return new_text
 
 
-########################################
-# MERKLE-HELLMAN KNAPSACK CRYPTOSYSTEM #
-########################################
+###################
+# SCYTALE CIPHER #
+###################
 
-def generate_private_key(n=8):
-    """Generate a private key to use with the Merkle-Hellman Knapsack Cryptosystem.
+def encrypt_scytale(plaintext,circumference):
+    new_text = ""
+ 
+    # puts every letter in a matrix, starting with the columns
+    l = [list(plaintext[i:i+ circumference ]) for i in range(0, len(plaintext), circumference)]
+    matrix = [s if len(s) == circumference else s+ [None]*(circumference-len(s)) for s in l]
+   
+   #read the matrix [row][column], starting with the rows
+    for j in range(0,circumference):
+        for i in range(0, (len(plaintext) // circumference)  ):
+            
+            if(matrix[i][j] != None):
+                new_text += (matrix[i][j])
+    return new_text
+        
 
-    Following the instructions in the handout, construct the private key
-    components of the MH Cryptosystem. This consists of 3 tasks:
+def decrypt_scytale(ciphertext,circumference):
+    #construct matrix with empty cells
+    matrix = [['\n' for i in range(len(ciphertext))] for j in range(circumference)]
+    new_text = []
+ 
+    c = 0
+    r = 0
 
-    1. Build a superincreasing sequence `w` of length n
-        Note: You can double-check that a sequence is superincreasing by using:
-            `utils.is_superincreasing(seq)`
-    2. Choose some integer `q` greater than the sum of all elements in `w`
-    3. Discover an integer `r` between 2 and q that is coprime to `q`
-        Note: You can use `utils.coprime(r, q)` for this.
+    #filling the matrix with *, to match the pattern
+    for i in range(len(ciphertext)):
+        if(r == circumference):
+            r = 0
+        
+        matrix[r][c] = '*'
+        c += 1
+        r += 1
 
-    You'll also need to use the random module's `randint` function, which you
-    will have to import.
-
-    Somehow, you'll have to return all three of these values from this function!
-    Can we do that in Python?!
-
-    :param n: Bitsize of message to send (defaults to 8)
-    :type n: int
-
-    :returns: 3-tuple private key `(w, q, r)`, with `w` a n-tuple, and q and r ints.
-    """
-    # Your implementation here.
-    raise NotImplementedError('generate_private_key is not yet implemented!')
-
-
-def create_public_key(private_key):
-    """Create a public key corresponding to the given private key.
-
-    To accomplish this, you only need to build and return `beta` as described in
-    the handout.
-
-        beta = (b_1, b_2, ..., b_n) where b_i = r × w_i mod q
-
-    Hint: this can be written in one or two lines using list comprehensions.
-
-    :param private_key: The private key created by generate_private_key.
-    :type private_key: 3-tuple `(w, q, r)`, with `w` a n-tuple, and q and r ints.
-
-    :returns: n-tuple public key
-    """
-    # Your implementation here.
-    raise NotImplementedError('create_public_key is not yet implemented!')
+    #changing the *-s with the actual letters
+    index = 0
+    for i in range(circumference):
+        for j in range(c):
+            if(matrix[i][j] == "*"):
+                matrix[i][j] = ciphertext[index]
+                index += 1
 
 
-def encrypt_mh(message, public_key):
-    """Encrypt an outgoing message using a public key.
+    c = 0
+    r = 0
 
-    Following the outline of the handout, you will need to:
-    1. Separate the message into chunks based on the size of the public key.
-        In our case, that's the fixed value n = 8, corresponding to a single
-        byte. In principle, we should work for any value of n, but we'll
-        assert that it's fine to operate byte-by-byte.
-    2. For each byte, determine its 8 bits (the `a_i`s). You can use
-        `utils.byte_to_bits(byte)`.
-    3. Encrypt the 8 message bits by computing
-         c = sum of a_i * b_i for i = 1 to n
-    4. Return a list of the encrypted ciphertexts for each chunk of the message.
+    #reading the matrix thru de pattern
+    for i in range(len(ciphertext)):
+        if(r == circumference):
+            r = 0
+        
+        new_text.append(matrix[r][c])
+        c += 1
+        r += 1
+    
+    return ''.join(new_text)
 
-    Hint: Think about using `zip` and other tools we've discussed in class.
+###################
+# RAIL FENCE CIPHER #
+###################
 
-    :param message: The message to be encrypted.
-    :type message: bytes
-    :param public_key: The public key of the message's recipient.
-    :type public_key: n-tuple of ints
+def encrypt_railfence(plaintext,num_rails):
+    matrix = [['\n' for i in range(len(plaintext))] for j in range(num_rails)] 
 
-    :returns: Encrypted message bytes represented as a list of ints.
-    """
-    # Your implementation here.
-    raise NotImplementedError('encrypt_mh is not yet implemented!')
+    dir = False #False->down
+    r = 0
+    c = 0
 
+    #filling the matrix with the letters in zigzag pattern
+    for i in range(len(plaintext)):
+        if(r == 0) or (r == num_rails-1):
+            dir = not dir
 
-def decrypt_mh(message, private_key):
-    """Decrypt an incoming message using a private key.
+        matrix[r][c] = plaintext[i]
+        c += 1
 
-    Following the outline of the handout, you will need to:
-    1. Extract w, q, and r from the private key.
-    2. Compute s, the modular inverse of r mod q, using the Extended Euclidean
-        algorithm (implemented for you at `utils.modinv(r, q)`)
-    3. For each byte-sized chunk, compute
-         c' = cs (mod q)
-    4. Solve the superincreasing subset sum problem using c' and w to recover
-        the original plaintext byte.
-    5. Reconstitute the decrypted bytes to form the original message.
+        if dir:
+            r += 1
+        else:
+            r -= 1
 
-    :param message: Encrypted message chunks.
-    :type message: list of ints
-    :param private_key: The private key of the recipient (you).
-    :type private_key: 3-tuple of w, q, and r
+    #constructing the answer reading the matrix thru the rows
+    new_text = ""
+    for j in range(num_rails):
+        for i in range(len(plaintext)):
+            if matrix[j][i] != '\n':
+                new_text += matrix[j][i]
 
-    :returns: bytearray or str of decrypted characters
-    """
-    # Your implementation here.
-    raise NotImplementedError('decrypt_mh is not yet implemented!')
+    return new_text
+
+def decrypt_railfence(cyphertext,num_rails):
+    matrix = [['\n' for i in range(len(cyphertext))] for j in range(num_rails)] 
+    new_text = []
+
+    dir = False #False->down
+    r = 0
+    c = 0
+
+    #filling the matrix with *, to match the zig-zag pattern
+    for i in range(len(cyphertext)):
+        if(r == 0) or (r == num_rails-1):
+            dir = not dir
+
+        matrix[r][c] = '*'
+        c += 1
+
+        if dir:
+            r += 1
+        else:
+            r -= 1
+
+    #changing the *-s with the actual letters
+    index = 0
+    for i in range(num_rails):
+        for j in range(c):
+            if(matrix[i][j] == "*"):
+                matrix[i][j] = cyphertext[index]
+                index += 1
+    
+    dir = False #False->down
+    r = 0
+    c = 0
+    index = 0
+
+    #reading the matrix thru de pattern
+    for i in range(len(cyphertext)):
+        if(r == 0) or (r == num_rails-1):
+            dir = not dir
+
+        new_text.append(matrix[r][c])
+        index += 1
+        c += 1
+
+        if dir:
+            r += 1
+        else:
+            r -= 1
+
+    return ''.join(new_text)
